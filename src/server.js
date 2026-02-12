@@ -31,7 +31,7 @@ export async function setupServer() {
 
   app.get('/', (req, res) => {
     res.json({
-      message: 'The server is running!',
+      message: 'The server is running on new "hw4" branch!',
     });
   });
 

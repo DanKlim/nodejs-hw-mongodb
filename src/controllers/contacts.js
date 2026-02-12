@@ -7,9 +7,22 @@ import {
   updateContact,
 } from '../services/contacts.js';
 import createHttpError from 'http-errors';
+import { parsePaginationParams } from '../utils/parsePaginationParams.js';
+import { parseSortParams } from '../utils/parseSortParams.js';
+import { parseFilterParams } from '../utils/parseFilterParams.js';
 
 export const getContactsController = async (req, res, next) => {
-  const data = await getAllContacts();
+  const { page, perPage } = parsePaginationParams(req.query);
+  const { sortBy, sortOrder } = parseSortParams(req.query);
+  const filter = parseFilterParams(req.query);
+
+  const data = await getAllContacts({
+    page,
+    perPage,
+    sortBy,
+    sortOrder,
+    filter,
+  });
   res.json({
     status: 200,
     message: 'Successfully found contacts!',
@@ -34,8 +47,15 @@ export const getContactByIdController = async (req, res, next) => {
 };
 
 export const createContactController = async (req, res) => {
-  const contact = await createContact(req.body);
+  // if (typeof req.body.name === "undefined"){
+  //   throw new createHttpError.BadRequest("Name is required");
+  // }
 
+  // if (typeof req.body.email === "undefined"){
+  //   throw new createHttpError.BadRequest("Email is required");
+  // }
+
+  const contact = await createContact(req.body);
 
   res.status(201).json({
     status: 201,
@@ -51,46 +71,44 @@ export const deleteContactController = async (req, res) => {
 
   console.log(result);
 
-  if(!result){
+  if (!result) {
     throw createHttpError(404, 'Contact not found');
   }
 
   res.json({
     status: 200,
-    message: "Contact deleted.",
+    message: 'Contact deleted.',
   });
 };
-
 
 export const upsertContactController = async (req, res) => {
   const result = await replaceContact(req.params.contactId, req.body);
 
-  if(result.updatedExisting === true){
+  if (result.updatedExisting === true) {
     return res.json({
-    status: 200,
-    message: "Contact updated successfully.",
-    data: result.value
-  });
+      status: 200,
+      message: 'Contact updated successfully.',
+      data: result.value,
+    });
   }
-  
+
   res.status(201).json({
     status: 201,
-    message: "Contact created successfully.",
-    data: result.value
+    message: 'Contact created successfully.',
+    data: result.value,
   });
 };
 
 export const updateContactController = async (req, res) => {
-  const contact = await updateContact( req.params.contactId, req.body);
+  const contact = await updateContact(req.params.contactId, req.body);
 
-  if(!contact){
-    return new createHttpError.NotFound("Student not found");  
+  if (!contact) {
+    return new createHttpError.NotFound('Student not found');
   }
 
-    res.status(200).json({
-    status:200, 
-    message: "Contact update successfully.",
-    data: contact
+  res.status(200).json({
+    status: 200,
+    message: 'Contact update successfully.',
+    data: contact,
   });
-  
 };
